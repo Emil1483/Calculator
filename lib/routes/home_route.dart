@@ -6,20 +6,51 @@ class HomeRoute extends StatefulWidget {
 }
 
 class _HomeRouteState extends State<HomeRoute> {
+  String calculate = "";
+
+  Color _getColor(String str) {
+    if (str == "c") return Colors.deepOrange[400];
+    try {
+      int.parse(str);
+      return Colors.white;
+    } on FormatException {
+      if (str == "+/-" || str == "," || str == "=") return Colors.white;
+      return Colors.green[400];
+    }
+  }
+
+  Color _getBackground(String str) {
+    if (str == "=") return Color(0xff00ae55);
+    return Theme.of(context).cardColor;
+  }
+
+  void operate(String str) {
+    if (str == "c") {
+      setState(() => calculate = "");
+      return;
+    }
+    if (calculate.length == 1 && calculate[0] == "0") calculate = "";
+    if (str == "," && calculate.contains(",")) return;
+    setState(() => calculate += str);
+  }
+
   Widget _buildButton(String str) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22.0),
       child: Material(
-        color: Theme.of(context).cardColor,
+        color: _getBackground(str),
         child: InkWell(
-          onTap: () {},
+          onTap: () => operate(str),
           child: Container(
             width: 72.0,
             height: 52.0,
             alignment: Alignment.center,
             child: Text(
               str,
-              style: Theme.of(context).textTheme.button,
+              style: Theme.of(context)
+                  .textTheme
+                  .button
+                  .copyWith(color: _getColor(str)),
             ),
           ),
         ),
@@ -46,12 +77,12 @@ class _HomeRouteState extends State<HomeRoute> {
               child: Padding(
                 padding: EdgeInsets.only(
                   bottom: 14.0,
-                  top: 32.0,
+                  top: 52.0,
                 ),
                 child: Align(
                   alignment: Alignment.topRight,
                   child: Text(
-                    "0",
+                    calculate,
                     style: Theme.of(context).textTheme.title,
                   ),
                 ),
