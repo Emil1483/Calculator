@@ -29,8 +29,20 @@ class _HomeRouteState extends State<HomeRoute> {
       setState(() => calculate = "");
       return;
     }
-    if (calculate.length == 1 && calculate[0] == "0") calculate = "";
+    if (str == "back") {
+      if (calculate.length == 0) return;
+      setState(() => calculate = calculate.substring(0, calculate.length - 1));
+      return;
+    }
+    if (str == "+/-") {
+      if (calculate.length == 0 || calculate[0] != "-")
+        setState(() => calculate = "-$calculate");
+      else
+        setState(() => calculate = calculate.substring(1));
+      return;
+    }
     if (str == "," && calculate.contains(",")) return;
+    if (calculate.length == 1 && calculate[0] == "0") calculate = "";
     setState(() => calculate += str);
   }
 
@@ -79,12 +91,31 @@ class _HomeRouteState extends State<HomeRoute> {
                   bottom: 14.0,
                   top: 52.0,
                 ),
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: Text(
-                    calculate,
-                    style: Theme.of(context).textTheme.title,
-                  ),
+                child: Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          calculate,
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context).textTheme.title,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.backspace,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          operate("back");
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
