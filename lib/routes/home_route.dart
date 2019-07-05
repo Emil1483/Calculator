@@ -64,6 +64,7 @@ class _HomeRouteState extends State<HomeRoute> {
 
   void _operate(String str) {
     if (_calculate == "error") setState(() => _calculate = "");
+
     if (str == "=") {
       if (_numOf(_calculate, "(") != _numOf(_calculate, ")") ||
           _lastCharIs(_calculate, ["+", "-", "x", "/"])) {
@@ -78,6 +79,7 @@ class _HomeRouteState extends State<HomeRoute> {
       }
       return;
     }
+
     if (str == "()") {
       setState(() {
         if (_calculate.length == 0 || _lastChar(_calculate) == "(") {
@@ -93,16 +95,19 @@ class _HomeRouteState extends State<HomeRoute> {
       });
       return;
     }
+
     if (str == "c") {
       setState(() => _calculate = "");
       return;
     }
+
     if (str == "back") {
       if (_calculate.length == 0) return;
       setState(
           () => _calculate = _calculate.substring(0, _calculate.length - 1));
       return;
     }
+
     if (str == "+/-") {
       if (_calculate.length == 0 || _calculate[0] != "-")
         setState(() => _calculate = "-$_calculate");
@@ -110,17 +115,20 @@ class _HomeRouteState extends State<HomeRoute> {
         setState(() => _calculate = _calculate.substring(1));
       return;
     }
+
     if (str == "." && _calculate.contains(".")) return;
     if (str == "." && _calculate.length == 0) {
       setState(() => _calculate += "0.");
       return;
     }
+
     if ((str == "/" || str == "x" || str == "-" || str == "+") &&
         _lastCharIs(_calculate, ["(", "/", "x", "-", "+"])) return;
-    if (str == "%" && _lastCharIs(_calculate, ["%", "(", "/", "x", "-", "+"]))
+
+    if ((str == "%" && _lastCharIs(_calculate, ["%", "(", "/", "x", "-", "+"])))
       return;
 
-    if (_calculate.length == 1 && _calculate[0] == "0") _calculate = "";
+    if (_calculate == "0") _calculate = "";
     setState(() => _calculate += str);
   }
 
@@ -186,6 +194,12 @@ class _HomeRouteState extends State<HomeRoute> {
       return mult
           ? _toCharList((term1 * term2).toString())
           : _toCharList((term1 / term2).toString());
+    }
+    if (str.contains("%")) {
+      return _toCharList(
+        (double.parse(_toString(str.sublist(0, str.length - 1))) / 100)
+            .toString(),
+      );
     }
     return null;
   }
