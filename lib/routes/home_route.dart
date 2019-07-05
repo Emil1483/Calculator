@@ -24,7 +24,27 @@ class _HomeRouteState extends State<HomeRoute> {
     return Theme.of(context).cardColor;
   }
 
+  bool _isNumber(String str) {
+    if (str.length != 1) return false;
+    try {
+      int.parse(str);
+      return true;
+    } on FormatException {
+      return false;
+    }
+  }
+
   void operate(String str) {
+    if (str == "()") {
+      return;
+    }
+    if (str == "%") {
+      return;
+    }
+    if ((str == "/" || str == "x" || str == "-" || str == "+") &&
+        (calculate.length == 0 || !_isNumber(calculate[calculate.length - 1])))
+      return;
+
     if (str == "c") {
       setState(() => calculate = "");
       return;
@@ -42,6 +62,10 @@ class _HomeRouteState extends State<HomeRoute> {
       return;
     }
     if (str == "," && calculate.contains(",")) return;
+    if (str == "," && calculate.length == 0) {
+      setState(() => calculate += "0,");
+      return;
+    }
     if (calculate.length == 1 && calculate[0] == "0") calculate = "";
     setState(() => calculate += str);
   }
