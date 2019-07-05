@@ -6,7 +6,7 @@ class HomeRoute extends StatefulWidget {
 }
 
 class _HomeRouteState extends State<HomeRoute> {
-  String calculate = "";
+  String _calculate = "";
 
   Color _getColor(String str) {
     if (str == "c") return Colors.deepOrange[400];
@@ -34,40 +34,133 @@ class _HomeRouteState extends State<HomeRoute> {
     }
   }
 
-  void operate(String str) {
-    if (str == "()") {
-      return;
-    }
-    if (str == "%") {
-      return;
-    }
-    if ((str == "/" || str == "x" || str == "-" || str == "+") &&
-        (calculate.length == 0 || !_isNumber(calculate[calculate.length - 1])))
-      return;
+/*
 
+  String _solve(String exp) {
+    if (exp.isEmpty) return "";
+
+    List<String> stringTerms = [];
+    int prevIndex = 0;
+    for (int i = 0; i < exp.length; i++) {
+      if (exp[i] == "+" || exp[i] == "-") {
+        stringTerms.add(exp.substring(prevIndex, i));
+        prevIndex = i;
+      }
+    }
+    stringTerms.add(exp.substring(prevIndex));
+    if (stringTerms[0].isEmpty) stringTerms.removeAt(0);
+    if (stringTerms[0][0] != "-") stringTerms[0] = "+${stringTerms[0]}";
+
+    List<double> terms = [];
+    for (String str in stringTerms) {
+      double parsed = _parse(str);
+      if (parsed == null) return "error";
+      terms.add(parsed);
+    }
+    double sum = 0;
+    for (double term in terms) sum += term;
+
+    String result = sum.toString();
+    if (result.substring(result.length - 2) == ".0")
+      result = "${result.substring(0, result.length - 2)}";
+    return result;
+  }
+
+  double _parse(String str) {
+    if (!str.contains("x") && !str.contains("/")) return double.parse(str);
+    if (!str.contains("/")) {
+      List<String> stringFactors = str.split("x");
+      double product = 1;
+      for (String stringFactor in stringFactors) {
+        product *= double.parse(stringFactor);
+      }
+      return product;
+    }
+    List<String> temp = str.split("/");
+    String stringDenomerator = "";
+    for (String str in temp.sublist(1)) stringDenomerator += "/$str";
+    stringDenomerator = stringDenomerator.substring(1);
+    if (stringDenomerator.isEmpty) stringDenomerator = "1";
+
+    double numerator = _parse(temp[0]);
+    double denomerator = _parse(stringDenomerator);
+    if (numerator == null) return null;
+    if (denomerator == null) return null;
+    if (denomerator == 0) return null;
+    return numerator / denomerator;
+  }
+
+    */
+
+  String _solve(String str) {
+    return "error";
+  }
+
+  int _numOf(String str, String search) {
+    int sum = 0;
+    for (int i = 0; i < str.length; i++) if (str[i] == search) sum++;
+    return sum;
+  }
+
+  String _lastChar(String str) {
+    return str[str.length - 1];
+  }
+
+  bool _lastCharIs(String str, List<String> chars) {
+    for (String char in chars) if (str[str.length - 1] == char) return true;
+    return false;
+  }
+
+  void _operate(String str) {
+    if (str == "=") {
+      setState(() => _calculate = _solve(_calculate));
+      return;
+    }
+    if (_calculate == "error") setState(() => _calculate = "");
+    if (str == "()") {
+      setState(() {
+        if (_calculate.length == 0 || _lastChar(_calculate) == "(") {
+          _calculate += "(";
+        } else if (_numOf(_calculate, "(") > _numOf(_calculate, ")")) {
+          if (_lastCharIs(_calculate, ["/", "x", "+", "-"])) return;
+          _calculate += ")";
+        } else if (_lastCharIs(_calculate, ["/", "x", "+", "-"])) {
+          _calculate += "(";
+        } else {
+          _calculate += "x(";
+        }
+      });
+      return;
+    }
     if (str == "c") {
-      setState(() => calculate = "");
+      setState(() => _calculate = "");
       return;
     }
     if (str == "back") {
-      if (calculate.length == 0) return;
-      setState(() => calculate = calculate.substring(0, calculate.length - 1));
+      if (_calculate.length == 0) return;
+      setState(
+          () => _calculate = _calculate.substring(0, _calculate.length - 1));
       return;
     }
     if (str == "+/-") {
-      if (calculate.length == 0 || calculate[0] != "-")
-        setState(() => calculate = "-$calculate");
+      if (_calculate.length == 0 || _calculate[0] != "-")
+        setState(() => _calculate = "-$_calculate");
       else
-        setState(() => calculate = calculate.substring(1));
+        setState(() => _calculate = _calculate.substring(1));
       return;
     }
-    if (str == "," && calculate.contains(",")) return;
-    if (str == "," && calculate.length == 0) {
-      setState(() => calculate += "0,");
+    if (str == "," && _calculate.contains(",")) return;
+    if (str == "," && _calculate.length == 0) {
+      setState(() => _calculate += "0,");
       return;
     }
-    if (calculate.length == 1 && calculate[0] == "0") calculate = "";
-    setState(() => calculate += str);
+    if ((str == "/" || str == "x" || str == "-" || str == "+") &&
+        _lastCharIs(_calculate, ["(", "/", "x", "-", "+"])) return;
+    if (str == "%" && _lastCharIs(_calculate, ["%", "(", "/", "x", "-", "+"]))
+      return;
+
+    if (_calculate.length == 1 && _calculate[0] == "0") _calculate = "";
+    setState(() => _calculate += str);
   }
 
   Widget _buildButton(String str) {
@@ -76,7 +169,7 @@ class _HomeRouteState extends State<HomeRoute> {
       child: Material(
         color: _getBackground(str),
         child: InkWell(
-          onTap: () => operate(str),
+          onTap: () => _operate(str),
           child: Container(
             width: 72.0,
             height: 52.0,
@@ -121,7 +214,7 @@ class _HomeRouteState extends State<HomeRoute> {
                       child: Align(
                         alignment: Alignment.topRight,
                         child: Text(
-                          calculate,
+                          _calculate,
                           textAlign: TextAlign.end,
                           style: Theme.of(context).textTheme.title,
                         ),
@@ -135,7 +228,7 @@ class _HomeRouteState extends State<HomeRoute> {
                           color: Colors.grey,
                         ),
                         onPressed: () {
-                          operate("back");
+                          _operate("back");
                         },
                       ),
                     ),
