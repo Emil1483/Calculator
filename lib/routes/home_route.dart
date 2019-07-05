@@ -14,7 +14,7 @@ class _HomeRouteState extends State<HomeRoute> {
       int.parse(str);
       return Colors.white;
     } on FormatException {
-      if (str == "+/-" || str == "," || str == "=") return Colors.white;
+      if (str == "+/-" || str == "." || str == "=") return Colors.white;
       return Colors.green[400];
     }
   }
@@ -34,68 +34,6 @@ class _HomeRouteState extends State<HomeRoute> {
     }
   }
 
-/*
-
-  String _solve(String exp) {
-    if (exp.isEmpty) return "";
-
-    List<String> stringTerms = [];
-    int prevIndex = 0;
-    for (int i = 0; i < exp.length; i++) {
-      if (exp[i] == "+" || exp[i] == "-") {
-        stringTerms.add(exp.substring(prevIndex, i));
-        prevIndex = i;
-      }
-    }
-    stringTerms.add(exp.substring(prevIndex));
-    if (stringTerms[0].isEmpty) stringTerms.removeAt(0);
-    if (stringTerms[0][0] != "-") stringTerms[0] = "+${stringTerms[0]}";
-
-    List<double> terms = [];
-    for (String str in stringTerms) {
-      double parsed = _parse(str);
-      if (parsed == null) return "error";
-      terms.add(parsed);
-    }
-    double sum = 0;
-    for (double term in terms) sum += term;
-
-    String result = sum.toString();
-    if (result.substring(result.length - 2) == ".0")
-      result = "${result.substring(0, result.length - 2)}";
-    return result;
-  }
-
-  double _parse(String str) {
-    if (!str.contains("x") && !str.contains("/")) return double.parse(str);
-    if (!str.contains("/")) {
-      List<String> stringFactors = str.split("x");
-      double product = 1;
-      for (String stringFactor in stringFactors) {
-        product *= double.parse(stringFactor);
-      }
-      return product;
-    }
-    List<String> temp = str.split("/");
-    String stringDenomerator = "";
-    for (String str in temp.sublist(1)) stringDenomerator += "/$str";
-    stringDenomerator = stringDenomerator.substring(1);
-    if (stringDenomerator.isEmpty) stringDenomerator = "1";
-
-    double numerator = _parse(temp[0]);
-    double denomerator = _parse(stringDenomerator);
-    if (numerator == null) return null;
-    if (denomerator == null) return null;
-    if (denomerator == 0) return null;
-    return numerator / denomerator;
-  }
-
-    */
-
-  String _solve(String str) {
-    return "error";
-  }
-
   int _numOf(String str, String search) {
     int sum = 0;
     for (int i = 0; i < str.length; i++) if (str[i] == search) sum++;
@@ -107,16 +45,39 @@ class _HomeRouteState extends State<HomeRoute> {
   }
 
   bool _lastCharIs(String str, List<String> chars) {
+    if (str.length == 0) return false;
     for (String char in chars) if (str[str.length - 1] == char) return true;
     return false;
   }
 
+  List<String> _toCharList(String str) {
+    List<String> result = [];
+    for (int i = 0; i < str.length; i++) result.add(str[i]);
+    return result;
+  }
+
+  String _toString(List<String> chars) {
+    String result = "";
+    for (String char in chars) result += char;
+    return result;
+  }
+
   void _operate(String str) {
+    if (_calculate == "error") setState(() => _calculate = "");
     if (str == "=") {
-      setState(() => _calculate = _solve(_calculate));
+      if (_numOf(_calculate, "(") != _numOf(_calculate, ")") ||
+          _lastCharIs(_calculate, ["+", "-", "x", "/"])) {
+        return;
+      }
+      try {
+        setState(() => _calculate = _toString(
+              _solve(_toCharList(_calculate)),
+            ));
+      } catch (_) {
+        setState(() => _calculate = "error");
+      }
       return;
     }
-    if (_calculate == "error") setState(() => _calculate = "");
     if (str == "()") {
       setState(() {
         if (_calculate.length == 0 || _lastChar(_calculate) == "(") {
@@ -149,9 +110,9 @@ class _HomeRouteState extends State<HomeRoute> {
         setState(() => _calculate = _calculate.substring(1));
       return;
     }
-    if (str == "," && _calculate.contains(",")) return;
-    if (str == "," && _calculate.length == 0) {
-      setState(() => _calculate += "0,");
+    if (str == "." && _calculate.contains(".")) return;
+    if (str == "." && _calculate.length == 0) {
+      setState(() => _calculate += "0.");
       return;
     }
     if ((str == "/" || str == "x" || str == "-" || str == "+") &&
@@ -161,6 +122,72 @@ class _HomeRouteState extends State<HomeRoute> {
 
     if (_calculate.length == 1 && _calculate[0] == "0") _calculate = "";
     setState(() => _calculate += str);
+  }
+
+  List<String> _solve(List<String> string) {
+    List<String> str = List.from(string);
+    try {
+      double.parse(_toString(str));
+      return str;
+    } catch (_) {}
+    if (str.length == 1) return [double.parse(str[0]).toString()];
+
+    if (str.contains("(") && str.contains(")")) {
+      final closeIndex = str.indexOf(")");
+      final openIndex = str.sublist(0, closeIndex).lastIndexOf("(");
+      str.replaceRange(
+        openIndex,
+        closeIndex + 1,
+        _solve(str.sublist(openIndex + 1, closeIndex)),
+      );
+      return _solve(str);
+    }
+
+    if (str.contains("-") || str.contains("+")) {
+      if (str[0] == "+" || str[0] == "-") str.insert(0, "0");
+      List<List<String>> terms = [];
+      int lastIndex = 0;
+      for (int i = 0; i < str.length; i++) {
+        if (str[i] == "+" || str[i] == "-") {
+          terms.add(str.sublist(lastIndex, i));
+          terms.add([str[i]]);
+          lastIndex = i + 1;
+        }
+      }
+      terms.add(str.sublist(lastIndex));
+      double sum = double.parse(_toString(_solve(terms[0])));
+      for (int i = 2; i < terms.length; i += 2) {
+        final double term = double.parse(_toString(_solve(terms[i])));
+        sum += terms[i - 1][0] == "+" ? term : -term;
+      }
+      return _toCharList(sum.toString());
+    }
+    if (str.contains("/") || str.contains("x")) {
+      int index;
+      bool mult;
+      if (str.contains("/")) {
+        index = str.indexOf("/");
+        mult = false;
+      } else {
+        index = str.indexOf("x");
+        mult = true;
+      }
+      final double term1 = double.parse(_toString(
+        _solve(
+          str.sublist(0, index),
+        ),
+      ));
+      final double term2 = double.parse(_toString(
+        _solve(
+          str.sublist(index + 1),
+        ),
+      ));
+      if (term2 == 0 && !mult) return null;
+      return mult
+          ? _toCharList((term1 * term2).toString())
+          : _toCharList((term1 / term2).toString());
+    }
+    return null;
   }
 
   Widget _buildButton(String str) {
@@ -271,7 +298,7 @@ class _HomeRouteState extends State<HomeRoute> {
                     _buildRow([
                       _buildButton("+/-"),
                       _buildButton("0"),
-                      _buildButton(","),
+                      _buildButton("."),
                       _buildButton("="),
                     ]),
                   ],
