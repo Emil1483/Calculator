@@ -1,6 +1,8 @@
 class Calculate {
   List<String> _chars;
 
+  bool _solved = false;
+
   Calculate(List<String> cs) {
     _chars = List.from(cs);
   }
@@ -27,9 +29,17 @@ class Calculate {
   List<String> get chars => List.from(_chars);
 
   int get currentNumberIndex {
-    return _chars.lastIndexWhere(
-      (String char) => !isNumber(char) && char != ".",
-    );
+    for (int i = _chars.length - 1; i >= 0; i--) {
+      String char = _chars[i];
+      String pChar = "";
+      if (i - 1 >= 0) pChar = _chars[i - 1];
+      if (!isNumber(char) &&
+          char != "." &&
+          char != ")" &&
+          pChar + char != "(-" &&
+          char != "(") return i;
+    }
+    return -1;
   }
 
   Calculate copy() {
@@ -89,6 +99,19 @@ class Calculate {
     _chars.replaceRange(start, end, replacement);
   }
 
+  void replace(int start, int end, Calculate replacement) {
+    _chars.replaceRange(start, end, replacement.chars);
+  }
+
+  void replaceCurrentNumber(Calculate replacement) {
+    int index = currentNumberIndex;
+    if (index == -1)
+      index = 0;
+    else
+      index++;
+    replace(index, _chars.length, replacement);
+  }
+
   String get lastChar => last >= 0 ? _chars[last] : "";
 
   int get last => _chars.length - 1;
@@ -145,14 +168,51 @@ class Calculate {
       return str;
     } catch (_) {}
     if (str.contains("(") && str.contains(")")) {
-      final closeIndex = str.indexOf(")");
-      final openIndex = str.sublist(0, closeIndex).lastIndexOf("(");
+      int openIndex = str.indexOf("(");
+      int closeIndex = -1;
+      int numOpened = 1;
+      for (int i = openIndex + 1; i < str.length; i++) {
+        String char = str.at(i);
+        if (char == "(") numOpened++;
+        if (char == ")") {
+          numOpened--;
+          if (numOpened == 0) {
+            closeIndex = i;
+            break;
+          }
+        }
+      }
       str.replaceRange(
         openIndex,
         closeIndex + 1,
         Calculate.solve(str.sublist(openIndex + 1, closeIndex)).chars,
       );
       return solve(str);
+      if (str.contains("+") ||
+          str.contains("-") ||
+          str.contains("x") ||
+          str.contains("/") ||
+          str.contains("%")) {
+        Calculate term1 = str.sublist(0, openIndex - 1);
+        print(term1);
+        Calculate term2 = str.sublist(openIndex + 1, closeIndex);
+        Calculate term3 = str.sublist(closeIndex + 2);
+        String operation1 = str.at(openIndex - 1);
+        String operation2 = "";
+        if (term3.length != 0) operation2 = str.at(closeIndex + 1);
+
+        print(term2);
+        print(term3);
+        print(operation1);
+        print(operation2);
+      } else {
+        str.replaceRange(
+          openIndex,
+          closeIndex + 1,
+          Calculate.solve(str.sublist(openIndex + 1, closeIndex)).chars,
+        );
+        return str;
+      }
     }
 
     if (str.contains("-") || str.contains("+")) {
@@ -161,12 +221,17 @@ class Calculate {
       int lastIndex = 0;
       for (int i = 0; i < str.length; i++) {
         if (str.at(i) == "+" || str.at(i) == "-") {
+          if (i + 1 < str.length &&
+              (str.at(i + 1) == "+" || str.at(i + 1) == "-")) continue;
+
           terms.add(str.sublist(lastIndex, i));
           terms.add(Calculate.fromString(str.at(i)));
           lastIndex = i + 1;
+          print(terms);
         }
       }
       terms.add(str.sublist(lastIndex));
+      print(terms);
       double sum = double.parse(Calculate.solve(terms[0]).toString());
       for (int i = 2; i < terms.length; i += 2) {
         final double term = double.parse(Calculate.solve(terms[i]).toString());
@@ -209,7 +274,10 @@ class Calculate {
   }
 
   void operate(String char) {
-    if (this.toString() == "error") chars.clear();
+    if (_solved) _chars.clear();
+    _solved = false;
+
+    if (isNumber(char) && lastChar == ")") add("x");
 
     if (char == "=") {
       if (numOf("(") != numOf(")") || lastCharIs(["+", "-", "x", "/"])) {
@@ -220,6 +288,7 @@ class Calculate {
       } catch (_) {
         _chars = Calculate.fromString("error").chars;
       }
+      _solved = true;
       return;
     }
 
@@ -249,10 +318,9 @@ class Calculate {
     }
 
     if (char == "+/-") {
-      if (length == 0 || at(0) != "-")
-        insert(0, "-");
-      else
-        remove(0);
+      if (currentNumber().length == 0) return;
+      replaceCurrentNumber(
+          Calculate.fromString("(-${currentNumber().toString()})"));
       return;
     }
 
@@ -262,14 +330,15 @@ class Calculate {
       return;
     }
 
-    if ((char == "/" || char == "x" || char == "-" || char == "+") &&
-        lastCharIs(["(", "/", "x", "-", "+"])) return;
+    if (char == "-" && lastCharIs(["/", "x", "-", "+"])) return;
+
+    if ((char == "/" || char == "x" || char == "+") &&
+        lastCharIs(["(", "/", "x", "-", "+", ""])) return;
 
     if ((char == "%" && lastCharIs(["%", "(", "/", "x", "-", "+"]))) return;
 
     if (_chars == ["0"]) clear();
 
     add(char);
-    print(currentNumber().chars);
   }
 }
