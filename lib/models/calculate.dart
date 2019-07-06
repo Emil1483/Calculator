@@ -15,10 +15,32 @@ class Calculate {
     return Calculate.fromString(val.toString());
   }
 
+  bool isNumber(String str) {
+    try {
+      double.parse(str);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   List<String> get chars => List.from(_chars);
+
+  int get currentNumberIndex {
+    return _chars.lastIndexWhere(
+      (String char) => !isNumber(char) && char != ".",
+    );
+  }
 
   Calculate copy() {
     return Calculate(List.from(_chars));
+  }
+
+  Calculate currentNumber() {
+    int index = currentNumberIndex;
+    if (index == -1) return copy();
+    if (index + 1 >= length) return Calculate([]);
+    return sublist(index + 1);
   }
 
   Calculate afterComma() {
@@ -234,7 +256,7 @@ class Calculate {
       return;
     }
 
-    if (char == "." && contains(".")) return;
+    if (char == "." && currentNumber().contains(".")) return;
     if (char == "." && length == 0) {
       add("0.");
       return;
@@ -248,5 +270,6 @@ class Calculate {
     if (_chars == ["0"]) clear();
 
     add(char);
+    print(currentNumber().chars);
   }
 }
