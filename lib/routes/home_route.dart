@@ -30,7 +30,7 @@ class _HomeRouteState extends State<HomeRoute> {
   Widget _buildButton(String str) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+        padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 5.0),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32.0),
           child: Material(
