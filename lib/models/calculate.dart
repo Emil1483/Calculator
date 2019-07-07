@@ -185,34 +185,12 @@ class Calculate {
       str.replaceRange(
         openIndex,
         closeIndex + 1,
-        Calculate.solve(str.sublist(openIndex + 1, closeIndex)).chars,
+        [
+          Calculate.solve(str.sublist(openIndex + 1, closeIndex))
+              .toShowString(),
+        ],
       );
       return solve(str);
-      if (str.contains("+") ||
-          str.contains("-") ||
-          str.contains("x") ||
-          str.contains("/") ||
-          str.contains("%")) {
-        Calculate term1 = str.sublist(0, openIndex - 1);
-        print(term1);
-        Calculate term2 = str.sublist(openIndex + 1, closeIndex);
-        Calculate term3 = str.sublist(closeIndex + 2);
-        String operation1 = str.at(openIndex - 1);
-        String operation2 = "";
-        if (term3.length != 0) operation2 = str.at(closeIndex + 1);
-
-        print(term2);
-        print(term3);
-        print(operation1);
-        print(operation2);
-      } else {
-        str.replaceRange(
-          openIndex,
-          closeIndex + 1,
-          Calculate.solve(str.sublist(openIndex + 1, closeIndex)).chars,
-        );
-        return str;
-      }
     }
 
     if (str.contains("-") || str.contains("+")) {
@@ -227,11 +205,9 @@ class Calculate {
           terms.add(str.sublist(lastIndex, i));
           terms.add(Calculate.fromString(str.at(i)));
           lastIndex = i + 1;
-          print(terms);
         }
       }
       terms.add(str.sublist(lastIndex));
-      print(terms);
       double sum = double.parse(Calculate.solve(terms[0]).toString());
       for (int i = 2; i < terms.length; i += 2) {
         final double term = double.parse(Calculate.solve(terms[i]).toString());
