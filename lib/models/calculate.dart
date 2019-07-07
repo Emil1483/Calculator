@@ -270,8 +270,8 @@ class Calculate {
       );
       if (term2 == 0 && !mult) return null;
       return mult
-          ? Calculate.fromDouble((term1 * term2))
-          : Calculate.fromDouble((term1 / term2));
+          ? solve(Calculate.fromDouble((term1 * term2)))
+          : solve(Calculate.fromDouble((term1 / term2)));
     }
 
     if (str.contains("%")) {
