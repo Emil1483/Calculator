@@ -1,4 +1,4 @@
-package com.example.calculator;
+package com.djupvik.calculator;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
