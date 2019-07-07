@@ -1,7 +1,7 @@
 class Calculate {
   List<String> _chars;
 
-  bool _solved = false;
+  static const int maxChars = 15;
 
   Calculate(List<String> cs) {
     _chars = List.from(cs);
@@ -86,9 +86,37 @@ class Calculate {
   }
 
   String toShowString() {
-    if (afterComma().toString() == ".0") return beforeComma().toString();
+    String result = toString();
+    bool afterComma(int index) {
+      if (!result.contains(".")) return false;
+      for (int i = index; i >= 0; i--) {
+        if (result[i] == ".") return true;
+        if (result[i] == "+" ||
+            result[i] == "-" ||
+            result[i] == "x" ||
+            result[i] == "/" ||
+            result[i] == "%") return false;
+      }
+      return false;
+    }
 
-    return toString();
+    int digitsNum = 0;
+    for (int i = result.length - 1; i >= 0; i--) {
+      if (afterComma(i)) {
+        digitsNum = 0;
+        continue;
+      }
+      if (isNumber(result[i]))
+        digitsNum++;
+      else
+        digitsNum = 0;
+      if (digitsNum == 3) {
+        result = "${result.substring(0, i)} ${result.substring(i)}";
+        digitsNum = 0;
+      }
+    }
+
+    return result;
   }
 
   Calculate sublist(int start, [int end]) {
@@ -165,6 +193,7 @@ class Calculate {
     Calculate str = string.copy();
     try {
       double.parse(str.toString());
+      if (str.afterComma().toString() == ".0") return str.beforeComma();
       return str;
     } catch (_) {}
     if (str.contains("(") && str.contains(")")) {
@@ -213,7 +242,7 @@ class Calculate {
         final double term = double.parse(Calculate.solve(terms[i]).toString());
         sum += terms[i - 1].at(0) == "+" ? term : -term;
       }
-      return Calculate.fromString(sum.toString());
+      return solve(Calculate.fromString(sum.toString()));
     }
     if (str.contains("/") || str.contains("x")) {
       int index;
@@ -250,10 +279,9 @@ class Calculate {
   }
 
   void operate(String char) {
-    if (_solved) _chars.clear();
-    _solved = false;
-
     if (isNumber(char) && lastChar == ")") add("x");
+    if ((isNumber(char) || char == ".") &&
+        currentNumber().length + 1 > maxChars) return;
 
     if (char == "=") {
       if (numOf("(") != numOf(")") || lastCharIs(["+", "-", "x", "/"])) {
@@ -264,7 +292,6 @@ class Calculate {
       } catch (_) {
         _chars = Calculate.fromString("error").chars;
       }
-      _solved = true;
       return;
     }
 
