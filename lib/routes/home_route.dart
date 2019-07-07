@@ -32,7 +32,7 @@ class _HomeRouteState extends State<HomeRoute> {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(22.0),
+          borderRadius: BorderRadius.circular(32.0),
           child: Material(
             color: _getBackground(str),
             child: InkWell(

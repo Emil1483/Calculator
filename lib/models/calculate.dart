@@ -111,6 +111,10 @@ class Calculate {
       else
         digitsNum = 0;
       if (digitsNum == 3) {
+        if (i - 1 >= 0 && !isNumber(_chars[i - 1])) {
+          digitsNum = 0;
+          continue;
+        }
         result = "${result.substring(0, i)} ${result.substring(i)}";
         digitsNum = 0;
       }
