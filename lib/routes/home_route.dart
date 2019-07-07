@@ -9,7 +9,7 @@ class HomeRoute extends StatefulWidget {
 }
 
 class _HomeRouteState extends State<HomeRoute> {
-  Calculate _calculate2 = Calculate([]);
+  Calculate _calculate = Calculate([]);
 
   Color _getColor(String str) {
     if (str == "c") return Colors.deepOrange[400];
@@ -38,7 +38,7 @@ class _HomeRouteState extends State<HomeRoute> {
             child: InkWell(
               onTap: () {
                 Feedback.forLongPress(context);
-                setState(() => _calculate2.operate(str));
+                setState(() => _calculate.operate(str));
               },
               child: Align(
                 alignment: Alignment.center,
@@ -80,7 +80,7 @@ class _HomeRouteState extends State<HomeRoute> {
               child: Align(
                 alignment: Alignment.topRight,
                 child: AutoSizeText(
-                  _calculate2.toShowString(),
+                  _calculate.toShowString(),
                   textAlign: TextAlign.end,
                   style: Theme.of(context).textTheme.title,
                 ),
@@ -96,7 +96,7 @@ class _HomeRouteState extends State<HomeRoute> {
                 onPressed: () {
                   Feedback.forLongPress(context);
                   setState(
-                    () => _calculate2.operate("back"),
+                    () => _calculate.operate("back"),
                   );
                 },
               ),
